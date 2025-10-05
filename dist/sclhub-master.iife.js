@@ -678,7 +678,7 @@
     banner169UploadInput.addEventListener("change", (e) => handleAdminImageUpload(e, "banner-16-9"));
     banner916UploadInput.addEventListener("change", (e) => handleAdminImageUpload(e, "banner-9-16"));
   }
-  document.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded", () => {
     onAuthReady.then((user) => {
       console.log("SCL Hub App Initialized. User:", user ? user.email : "Logged out");
       if (document.getElementById("dashboard-wrapper")) {
