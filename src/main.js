@@ -1,11 +1,12 @@
 // src/main.js
 
 import { onAuthReady, logout } from './auth.js';
-import { initDashboard } from './Pages/dashboard.js'; // Check this path
-import { initCreateClusterForm } from './Pages/createClusterForm.js'; // Check this path
-import { initEditClusterForm } from './Pages/editClusterForm.js'; // Check this path
-import { initUploadPage } from './Pages/uploadPage.js'; // Check this path
+import { initDashboard } from './Pages/dashboard.js';
+import { initCreateClusterForm } from './Pages/createClusterForm.js';
+import { initEditClusterForm } from './Pages/editClusterForm.js';
+import { initUploadPage } from './Pages/uploadPage.js';
 import { initLoginForm } from './Pages/loginForm.js';
+import { initAdminDashboard } from './Pages/adminDashboard.js'; // <-- STEP 1: IMPORT THE NEW MODULE
 
 // The main function that runs after the page's HTML is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,11 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log("Router: Initializing Upload Images page.");
       initUploadPage();
     }
-
     if (document.getElementById('auth-form')) { 
       console.log("Router: Initializing Login Form page.");
       initLoginForm(); 
     }
+    
+    // v-- STEP 2: ADD THIS BLOCK TO THE ROUTER --v
+    if (document.getElementById('addy-search-form')) {
+      console.log("Router: Initializing ADMIN DASHBOARD page.");
+      initAdminDashboard();
+    }
+    // ^-- END OF NEW BLOCK --^
+
     // These are for elements that appear on every page, like the logout button.
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
