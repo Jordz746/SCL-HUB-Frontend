@@ -103,9 +103,26 @@ export function initAdminDashboard() {
             if (editForm[name]) editForm[name].value = value || '';
         };
         
-        setValue('cluster-name', fieldData['cluster-name']);
-        setValue('cluster-short-description---max-100-characters', fieldData['cluster-short-description---max-100-characters']);
-        // ... (add all other form fields here in the same way)
+      setValue('cluster-name', fieldData['cluster-name']);
+      setValue('cluster-short-description---max-100-characters', fieldData['cluster-short-description---max-100-characters']);
+      setValue('discord-username', fieldData['discord-username']);
+      setValue('discord-invite-link', fieldData['discord-invite-link']);
+      setValue('website-link-optional', fieldData['website-link-optional']);
+      setValue('cluster-location', fieldData['cluster-location']);
+      setValue('game', fieldData['game']);
+      setValue('game-version', fieldData['game-version']);
+      setValue('game-type', fieldData['game-type']);
+      setValue('game-mode', fieldData['game-mode']);
+      setValue('number-of-maps', fieldData['number-of-maps']);
+      setValue('tribe-size', fieldData['tribe-size']);
+      setValue('harvest-rates', fieldData['harvest-rates']);
+
+      // Set checkbox values
+      document.getElementById('platforms-pc-edit').checked = fieldData['platforms-pc'];
+      document.getElementById('platforms-xbox-edit').checked = fieldData['platforms-xbox'];
+      document.getElementById('platforms-playstation-edit').checked = fieldData['platforms-playstation'];
+      document.getElementById('windows-10-11-edit').checked = fieldData['windows-10-11'];
+
         
         // Populate image previews
         const populatePreview = (previewEl, asset) => {
