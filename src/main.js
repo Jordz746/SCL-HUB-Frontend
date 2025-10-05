@@ -9,7 +9,7 @@ import { initLoginForm } from './Pages/loginForm.js';
 import { initAdminDashboard } from './Pages/adminDashboard.js'; // <-- STEP 1: IMPORT THE NEW MODULE
 
 // The main function that runs after the page's HTML is loaded
-document.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   
   // First, wait for our auth.js module to tell us if a user is logged in.
   onAuthReady.then(user => {
