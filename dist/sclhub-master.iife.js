@@ -678,32 +678,27 @@
     banner169UploadInput.addEventListener("change", (e) => handleAdminImageUpload(e, "banner-16-9"));
     banner916UploadInput.addEventListener("change", (e) => handleAdminImageUpload(e, "banner-9-16"));
   }
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("load", () => {
     onAuthReady.then((user) => {
       console.log("SCL Hub App Initialized. User:", user ? user.email : "Logged out");
-      if (document.getElementById("dashboard-wrapper")) {
-        console.log("Router: Initializing Dashboard page.");
-        initDashboard();
-      }
-      if (document.getElementById("create-cluster-form")) {
-        console.log("Router: Initializing Create Cluster page.");
-        initCreateClusterForm();
-      }
-      if (document.getElementById("edit-cluster-form")) {
-        console.log("Router: Initializing Edit Cluster page.");
-        initEditClusterForm();
-      }
-      if (document.getElementById("upload-images-wrapper")) {
-        console.log("Router: Initializing Upload Images page.");
-        initUploadPage();
-      }
-      if (document.getElementById("auth-form")) {
-        console.log("Router: Initializing Login Form page.");
-        initLoginForm();
-      }
       if (document.getElementById("addy-search-form")) {
         console.log("Router: Initializing ADMIN DASHBOARD page.");
         initAdminDashboard();
+      } else if (document.getElementById("dashboard-wrapper")) {
+        console.log("Router: Initializing Dashboard page.");
+        initDashboard();
+      } else if (document.getElementById("create-cluster-form")) {
+        console.log("Router: Initializing Create Cluster page.");
+        initCreateClusterForm();
+      } else if (document.getElementById("edit-cluster-form")) {
+        console.log("Router: Initializing Edit Cluster page.");
+        initEditClusterForm();
+      } else if (document.getElementById("upload-images-wrapper")) {
+        console.log("Router: Initializing Upload Images page.");
+        initUploadPage();
+      } else if (document.getElementById("auth-form")) {
+        console.log("Router: Initializing Login Form page.");
+        initLoginForm();
       }
       const logoutButton = document.getElementById("logout-button");
       if (logoutButton) {
