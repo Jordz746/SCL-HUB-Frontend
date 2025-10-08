@@ -37,7 +37,7 @@
       resolve(user);
     });
   });
-  const getCurrentUser$1 = () => currentUser;
+  const getCurrentUser = () => currentUser;
   const onAuthReady = authReady;
   const logout = () => {
     if (confirm("Are you sure you want to log out?")) {
@@ -50,7 +50,7 @@
     }
   };
   async function fetchWithAuth(endpoint, options = {}) {
-    const user = getCurrentUser$1();
+    const user = getCurrentUser();
     if (!user) {
       throw new Error("User is not authenticated.");
     }
@@ -85,7 +85,7 @@
     method: "POST"
   });
   const uploadImage = async (clusterId, imageType, formData) => {
-    const user = getCurrentUser$1();
+    const user = getCurrentUser();
     if (!user) throw new Error("User is not authenticated.");
     const idToken = await user.getIdToken(true);
     const response = await fetch(`${API_BASE_URL}/api/clusters/${clusterId}/image?type=${imageType}`, {

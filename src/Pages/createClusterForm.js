@@ -1,6 +1,7 @@
 // src/pages/createClusterForm.js
 
 import { createCluster } from '../api.js';
+import { getCurrentUser } from '../auth.js'; // <-- STEP 1: ADD THIS IMPORT LINE
 
 export function initCreateClusterForm() {
   const createClusterForm = document.getElementById('create-cluster-form')?.querySelector('form');

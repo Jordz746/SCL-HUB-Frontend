@@ -1,6 +1,7 @@
 // src/pages/editClusterForm.js
 
 import { getClusterById, updateCluster } from '../api.js';
+import { getCurrentUser } from '../auth.js';
 
 export function initEditClusterForm() {
   const editClusterForm = document.getElementById('edit-cluster-form')?.querySelector('form');
