@@ -517,6 +517,16 @@
     const saveChangesButton = document.getElementById("admin-save-changes");
     const mainContent = document.getElementById("admin-main-content");
     let currentCluster = { id: null };
+    const quillEditor = new Quill("#long-description-editor-edit", {
+      theme: "snow",
+      modules: {
+        toolbar: [
+          ["bold", "italic", "underline"],
+          [{ "list": "ordered" }, { "list": "bullet" }],
+          ["link"]
+        ]
+      }
+    });
     const adminUsername = prompt("Enter Admin Username:");
     const adminPassword = prompt("Enter Admin Password:");
     if (!adminUsername || !adminPassword) {
@@ -590,14 +600,12 @@
           saveChangesButton.value = "Saving...";
           saveChangesButton.disabled = true;
         }
-        const quillEditor = Quill.find(document.querySelector("#long-description-editor-edit"));
         const updatedData = {
           "name": editForm["cluster-name"].value,
-          // Webflow slug also uses 'name'
           "slug": editForm["cluster-name"].value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 255),
           "cluster-name": editForm["cluster-name"].value,
           "cluster-short-description---max-100-characters": editForm["cluster-short-description---max-100-characters"].value,
-          "cluster-description-rich": quillEditor ? quillEditor.root.innerHTML : "",
+          "cluster-description-rich": quillEditor.root.innerHTML,
           "discord-username": editForm["discord-username"].value,
           "discord-invite-link": editForm["discord-invite-link"].value,
           "website-link-optional": editForm["website-link-optional"].value,
@@ -701,7 +709,6 @@
       if (psCheckbox) psCheckbox.checked = fieldData["platforms-playstation"];
       const winCheckbox = document.getElementById("windows-10-11-edit");
       if (winCheckbox) winCheckbox.checked = fieldData["windows-10-11"];
-      const quillEditor = Quill.find(document.querySelector("#long-description-editor-edit"));
       if (quillEditor) {
         quillEditor.root.innerHTML = fieldData["cluster-description-rich"] || "";
       }

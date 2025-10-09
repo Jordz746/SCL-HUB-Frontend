@@ -1,11 +1,13 @@
 // src/Pages/adminDashboard.js
 
+// This helper function creates the Basic Auth header needed for our admin API calls.
 function createAuthHeader(username, password) {
     const credentials = `${username}:${password}`;
-    const encodedCredentials = btoa(credentials);
+    const encodedCredentials = btoa(credentials); // btoa() is a browser function to Base64 encode
     return `Basic ${encodedCredentials}`;
 }
 
+// This is the main initialization function for the admin dashboard page.
 export function initAdminDashboard() {
     console.log("ADMIN DASHBOARD: Initializing.");
 
@@ -33,6 +35,19 @@ export function initAdminDashboard() {
     const mainContent = document.getElementById('admin-main-content');
 
     let currentCluster = { id: null };
+
+    // --- Initialize Quill Editor ---
+    // We initialize it here so it's ready to be populated.
+    const quillEditor = new Quill('#long-description-editor-edit', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['link']
+            ]
+        }
+    });
 
     // --- 2. Authentication ---
     const adminUsername = prompt("Enter Admin Username:");
@@ -115,14 +130,12 @@ export function initAdminDashboard() {
                 saveChangesButton.disabled = true;
             }
             
-            const quillEditor = Quill.find(document.querySelector('#long-description-editor-edit'));
-            
             const updatedData = {
-                'name': editForm['cluster-name'].value, // Webflow slug also uses 'name'
+                'name': editForm['cluster-name'].value,
                 'slug': editForm['cluster-name'].value.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 255),
                 'cluster-name': editForm['cluster-name'].value,
                 'cluster-short-description---max-100-characters': editForm['cluster-short-description---max-100-characters'].value,
-                'cluster-description-rich': quillEditor ? quillEditor.root.innerHTML : '',
+                'cluster-description-rich': quillEditor.root.innerHTML,
                 'discord-username': editForm['discord-username'].value,
                 'discord-invite-link': editForm['discord-invite-link'].value,
                 'website-link-optional': editForm['website-link-optional'].value,
@@ -244,7 +257,6 @@ export function initAdminDashboard() {
         const winCheckbox = document.getElementById('windows-10-11-edit');
         if (winCheckbox) winCheckbox.checked = fieldData['windows-10-11'];
         
-        const quillEditor = Quill.find(document.querySelector('#long-description-editor-edit'));
         if (quillEditor) {
             quillEditor.root.innerHTML = fieldData['cluster-description-rich'] || '';
         }
