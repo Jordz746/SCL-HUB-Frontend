@@ -495,10 +495,10 @@
   }
   function initAdminDashboard() {
     var _a;
-    console.log("ADMIN DASHBOARD: Initializing.");
+    console.log("ADMIN DASHBOARD: Initializing with session storage.");
     const searchForm = document.getElementById("addy-search-form");
     if (!searchForm) {
-      console.error("Admin Dashboard FATAL ERROR: Could not find the core element '#addy-search-form'. The script cannot run on this page.");
+      console.error("Admin Dashboard FATAL ERROR: Could not find the core element '#addy-search-form'.");
       return;
     }
     const searchInput = document.getElementById("addy-search-input");
@@ -516,7 +516,9 @@
     const editForm = (_a = document.getElementById("admin-edit-cluster-form")) == null ? void 0 : _a.querySelector("form");
     const saveChangesButton = document.getElementById("admin-save-changes");
     const mainContent = document.getElementById("admin-main-content");
+    const clearCredsButton = document.getElementById("admin-clear-credentials");
     let currentCluster = { id: null };
+    let adminAuthHeader = null;
     const quillEditor = new Quill("#long-description-editor-edit", {
       theme: "snow",
       modules: {
@@ -527,22 +529,37 @@
         ]
       }
     });
-    const adminUsername = prompt("Enter Admin Username:");
-    const adminPassword = prompt("Enter Admin Password:");
-    if (!adminUsername || !adminPassword) {
-      alert("Authentication failed. Page functionality will be disabled.");
-      if (searchForm) searchForm.style.display = "none";
-      return;
+    const STORAGE_KEY = "SCL_ADMIN_AUTH_TOKEN";
+    adminAuthHeader = sessionStorage.getItem(STORAGE_KEY);
+    if (!adminAuthHeader) {
+      console.log("ADMIN DASHBOARD: No session token found. Prompting for credentials.");
+      const adminUsername = prompt("Enter Admin Username:");
+      const adminPassword = prompt("Enter Admin Password:");
+      if (!adminUsername || !adminPassword) {
+        alert("Authentication failed. Page functionality will be disabled.");
+        if (searchForm) searchForm.style.display = "none";
+        return;
+      }
+      adminAuthHeader = createAuthHeader(adminUsername, adminPassword);
+      sessionStorage.setItem(STORAGE_KEY, adminAuthHeader);
+      console.log("ADMIN DASHBOARD: Credentials saved to session storage.");
+    } else {
+      console.log("ADMIN DASHBOARD: Found session token. Skipping login prompt.");
     }
-    const adminAuthHeader = createAuthHeader(adminUsername, adminPassword);
+    if (clearCredsButton) {
+      clearCredsButton.addEventListener("click", () => {
+        if (confirm("Are you sure you want to log out as admin? You will need to enter your credentials again on the next page load.")) {
+          sessionStorage.removeItem(STORAGE_KEY);
+          alert("Admin credentials cleared. The page will now reload.");
+          location.reload();
+        }
+      });
+    }
     if (searchForm) {
       searchForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const clusterId = searchInput.value.trim();
-        if (!clusterId) {
-          alert("Please enter a Cluster ID.");
-          return;
-        }
+        if (!clusterId) return alert("Please enter a Cluster ID.");
         if (searchButton) {
           searchButton.value = "Searching...";
           searchButton.disabled = true;
@@ -554,7 +571,6 @@
           currentCluster.id = clusterId;
           populateDashboard(data);
         } catch (error) {
-          console.error("Admin search error:", error);
           alert(`Error: ${error.message}`);
         } finally {
           if (searchButton) {
@@ -586,7 +602,7 @@
       deleteButton.addEventListener("click", () => {
         if (!currentCluster.id) return;
         const clusterName = clusterNameDisplay ? clusterNameDisplay.textContent : "this cluster";
-        if (confirm(`Are you sure you want to permanently delete "${clusterName}"? This action is irreversible.`)) {
+        if (confirm(`Are you sure you want to permanently delete "${clusterName}"?`)) {
           const deleteUrl = `https://scl-user-acc-api.vercel.app/api/admin/delete-cluster/${currentCluster.id}`;
           window.open(deleteUrl, "_blank");
         }
@@ -623,11 +639,7 @@
           "windows-10-11": document.getElementById("windows-10-11-edit").checked
         };
         try {
-          const response = await fetch(`https://scl-user-acc-api.vercel.app/api/admin/cluster/${currentCluster.id}`, {
-            method: "PATCH",
-            headers: { "Authorization": adminAuthHeader, "Content-Type": "application/json" },
-            body: JSON.stringify(updatedData)
-          });
+          const response = await fetch(`https://scl-user-acc-api.vercel.app/api/admin/cluster/${currentCluster.id}`, { method: "PATCH", headers: { "Authorization": adminAuthHeader, "Content-Type": "application/json" }, body: JSON.stringify(updatedData) });
           const result = await response.json();
           if (!response.ok) throw new Error(result.message);
           alert("Cluster details saved successfully!");

@@ -9,15 +9,14 @@ function createAuthHeader(username, password) {
 
 // This is the main initialization function for the admin dashboard page.
 export function initAdminDashboard() {
-    console.log("ADMIN DASHBOARD: Initializing.");
+    console.log("ADMIN DASHBOARD: Initializing with session storage.");
 
     // --- 1. Element Selectors ---
     const searchForm = document.getElementById('addy-search-form');
     if (!searchForm) {
-        console.error("Admin Dashboard FATAL ERROR: Could not find the core element '#addy-search-form'. The script cannot run on this page.");
+        console.error("Admin Dashboard FATAL ERROR: Could not find the core element '#addy-search-form'.");
         return;
     }
-
     const searchInput = document.getElementById('addy-search-input');
     const searchButton = document.getElementById('addy-search-button');
     const clusterNameDisplay = document.getElementById('cluster-name-display');
@@ -33,11 +32,12 @@ export function initAdminDashboard() {
     const editForm = document.getElementById('admin-edit-cluster-form')?.querySelector('form');
     const saveChangesButton = document.getElementById('admin-save-changes');
     const mainContent = document.getElementById('admin-main-content');
+    const clearCredsButton = document.getElementById('admin-clear-credentials');
 
     let currentCluster = { id: null };
+    let adminAuthHeader = null;
 
     // --- Initialize Quill Editor ---
-    // We initialize it here so it's ready to be populated.
     const quillEditor = new Quill('#long-description-editor-edit', {
         theme: 'snow',
         modules: {
@@ -49,26 +49,46 @@ export function initAdminDashboard() {
         }
     });
 
-    // --- 2. Authentication ---
-    const adminUsername = prompt("Enter Admin Username:");
-    const adminPassword = prompt("Enter Admin Password:");
-    if (!adminUsername || !adminPassword) {
-        alert("Authentication failed. Page functionality will be disabled.");
-        if (searchForm) searchForm.style.display = 'none';
-        return;
-    }
-    const adminAuthHeader = createAuthHeader(adminUsername, adminPassword);
+    // --- 2. Authentication with Session Storage ---
+    const STORAGE_KEY = 'SCL_ADMIN_AUTH_TOKEN';
 
-    // --- 3. Attach All Event Listeners with Safety Checks ---
+    adminAuthHeader = sessionStorage.getItem(STORAGE_KEY);
+
+    if (!adminAuthHeader) {
+        console.log("ADMIN DASHBOARD: No session token found. Prompting for credentials.");
+        const adminUsername = prompt("Enter Admin Username:");
+        const adminPassword = prompt("Enter Admin Password:");
+
+        if (!adminUsername || !adminPassword) {
+            alert("Authentication failed. Page functionality will be disabled.");
+            if (searchForm) searchForm.style.display = 'none';
+            return;
+        }
+        
+        adminAuthHeader = createAuthHeader(adminUsername, adminPassword);
+        sessionStorage.setItem(STORAGE_KEY, adminAuthHeader);
+        console.log("ADMIN DASHBOARD: Credentials saved to session storage.");
+    } else {
+        console.log("ADMIN DASHBOARD: Found session token. Skipping login prompt.");
+    }
+
+    // --- 3. Attach All Event Listeners ---
+
+    if (clearCredsButton) {
+        clearCredsButton.addEventListener('click', () => {
+            if (confirm("Are you sure you want to log out as admin? You will need to enter your credentials again on the next page load.")) {
+                sessionStorage.removeItem(STORAGE_KEY);
+                alert("Admin credentials cleared. The page will now reload.");
+                location.reload();
+            }
+        });
+    }
 
     if (searchForm) {
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const clusterId = searchInput.value.trim();
-            if (!clusterId) {
-                alert("Please enter a Cluster ID.");
-                return;
-            }
+            if (!clusterId) return alert("Please enter a Cluster ID.");
             if (searchButton) {
                 searchButton.value = "Searching...";
                 searchButton.disabled = true;
@@ -80,7 +100,6 @@ export function initAdminDashboard() {
                 currentCluster.id = clusterId;
                 populateDashboard(data);
             } catch (error) {
-                console.error("Admin search error:", error);
                 alert(`Error: ${error.message}`);
             } finally {
                 if (searchButton) {
@@ -114,7 +133,7 @@ export function initAdminDashboard() {
         deleteButton.addEventListener('click', () => {
             if (!currentCluster.id) return;
             const clusterName = clusterNameDisplay ? clusterNameDisplay.textContent : "this cluster";
-            if (confirm(`Are you sure you want to permanently delete "${clusterName}"? This action is irreversible.`)) {
+            if (confirm(`Are you sure you want to permanently delete "${clusterName}"?`)) {
                 const deleteUrl = `https://scl-user-acc-api.vercel.app/api/admin/delete-cluster/${currentCluster.id}`;
                 window.open(deleteUrl, '_blank');
             }
@@ -129,7 +148,6 @@ export function initAdminDashboard() {
                 saveChangesButton.value = "Saving...";
                 saveChangesButton.disabled = true;
             }
-            
             const updatedData = {
                 'name': editForm['cluster-name'].value,
                 'slug': editForm['cluster-name'].value.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 255),
@@ -152,13 +170,8 @@ export function initAdminDashboard() {
                 'platforms-playstation': document.getElementById('platforms-playstation-edit').checked,
                 'windows-10-11': document.getElementById('windows-10-11-edit').checked
             };
-
             try {
-                const response = await fetch(`https://scl-user-acc-api.vercel.app/api/admin/cluster/${currentCluster.id}`, { 
-                    method: 'PATCH', 
-                    headers: { 'Authorization': adminAuthHeader, 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(updatedData) 
-                });
+                const response = await fetch(`https://scl-user-acc-api.vercel.app/api/admin/cluster/${currentCluster.id}`, { method: 'PATCH', headers: { 'Authorization': adminAuthHeader, 'Content-Type': 'application/json' }, body: JSON.stringify(updatedData) });
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.message);
                 alert("Cluster details saved successfully!");
@@ -179,13 +192,10 @@ export function initAdminDashboard() {
         const imageFile = fileInput.files[0];
         const label = fileInput.previousElementSibling;
         if (!imageFile) return;
-
         const formData = new FormData();
         formData.append('image', imageFile);
-
         if (label) label.textContent = 'Uploading...';
         fileInput.disabled = true;
-
         try {
             const response = await fetch(`https://scl-user-acc-api.vercel.app/api/admin/cluster/${currentCluster.id}/image?type=${imageType}`, {
                 method: 'POST',
@@ -194,19 +204,15 @@ export function initAdminDashboard() {
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-
             if (label) label.textContent = 'Upload Complete!';
-            
             let previewEl;
             if (imageType === 'logo-1-1') previewEl = logoPreview;
             if (imageType === 'banner-16-9') previewEl = banner169Preview;
             if (imageType === 'banner-9-16') previewEl = banner916Preview;
-
             if (previewEl) {
                 previewEl.src = result.imageUrl + `?t=${new Date().getTime()}`;
                 previewEl.style.display = 'block';
             }
-
         } catch (error) {
             alert(`Upload Error: ${error.message}`);
             if (label) label.textContent = 'Upload Failed';
